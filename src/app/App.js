@@ -1,15 +1,44 @@
 import React from 'react';
 import Post from './Post';
-import DayPicker from 'react-day-picker';
 import Write from './Write'
+import Auth from './Auth'
+import DayPicker from 'react-day-picker';
 import {observer, inject} from 'mobx-react';
 import {Divider} from 'semantic-ui-react'
+import {auth} from '../database/database';
 
 @inject("postStore")
+@inject("authStore")
 @observer
 class App extends React.Component {
+  componentDidMount() {
+    this.removeListener = auth().onAuthStateChanged((user) => {
+      if (user) {
+        if(user.email === "jeemyeong@gmail.com" || user.email === "soobin950@nate.com"){
+        this
+          .props
+          .authStore
+          .setAuthState(user);
+        this
+          .props
+          .postStore
+          .initPostsState();
+        }else{
+          console.log("YOU Cannot JOIN");
+        }
+      }
+    })
+  }
+  componentWillUnmount() {
+    this.removeListener()
+  }
 
   render() {
+    const {loginWithFacebook, authState} = this.props.authStore;
+    const {authed} = authState;
+    if (!authed) {
+      return (<Auth loginWithFacebook={loginWithFacebook}/>)
+    }
     const appStyle = {
       margin: "auto",
       textAlign: "center",
@@ -19,6 +48,7 @@ class App extends React.Component {
     }
 
     const {postedDay, selectedDay} = this.props.postStore.postsState;
+
     return (
       <div className="App" style={appStyle}>
         <DayPicker
@@ -32,12 +62,14 @@ class App extends React.Component {
         }}
           onDayClick={(clickedDay, modifiers, e) => this.props.postStore.clickDay(clickedDay, modifiers, e)}
           style={dayPickerStyle}/>
-        <Post 
-          postStore={this.props.postStore.postsState}
-          deletePost={this.props.postStore.deletePost}
-        />
+        <Post
+          postsState={this.props.postStore.postsState}
+          deletePost={this.props.postStore.deletePost}/>
         <Divider horizontal>Write</Divider>
-        <Write addPost={this.props.postStore.addPost}/>
+        <Write
+          addPost={this.props.postStore.addPost}
+          authState={this.props.authStore.authState}/>
+        <Divider horizontal>END</Divider>
       </div>
     );
   }
