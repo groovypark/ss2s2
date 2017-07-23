@@ -6,17 +6,24 @@ import {Divider, Icon} from 'semantic-ui-react'
 @observer
 class Post extends Component {
   render() {
-    const {postsByDay, StringifiedSelectedDay} = this.props.postsState
-    const posts = postsByDay[StringifiedSelectedDay]
-    if (!posts) {
+    const {postsByDate, stringifiedSelectedDay} = this.props.postsState
+    if (!(stringifiedSelectedDay in postsByDate)) {
       return null;
     }
+    const posts = postsByDate[stringifiedSelectedDay]
     const parsedPosts = posts.map((post, index) => <Grid.Column key={index}>
       <Card centered className={`animated fadeIn`}>
         {!!post.photoUrls
           ? Object
             .keys(post.photoUrls)
-            .map((id, index) => <Image src={post.photoUrls[id]} key={index}/>)
+            .map((id, index) => 
+            <imageWrapper
+              style={imageWrapperStyle}
+              key={index}
+            >
+              <Image src={post.photoUrls[id]} />
+            </imageWrapper>
+            )
           : null}
         <Card.Content>
           <Card.Header>
@@ -35,17 +42,11 @@ class Post extends Component {
             {post.userInfo.displayName}
           </Card.Description>
         </Card.Content>
-        {/* <Card.Content extra>
-            <a>
-              <Icon name='user' />
-              10 Friends
-            </a>
-          </Card.Content> */}
       </Card>
     </Grid.Column>);
     return (
       <div className="Post">
-        <Divider horizontal>{StringifiedSelectedDay}</Divider>
+        <Divider horizontal>{stringifiedSelectedDay}</Divider>
         <Grid columns={4} stackable>
           {parsedPosts}
         </Grid>
@@ -54,4 +55,15 @@ class Post extends Component {
   }
 }
 
+const imageWrapper = ({style, key, children}) => (
+  <div>
+    {children}
+  </div>
+)
+
+const imageWrapperStyle = {
+  margin: "1rem",
+  align: "center",
+  textAlign: "center",
+}
 export default Post;
